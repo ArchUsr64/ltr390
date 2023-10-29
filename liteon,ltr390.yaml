@@ -22,6 +22,12 @@ properties:
   reg:
     maxItems: 1
 
+  interrupts:
+    maxItems: 1
+    description:
+      The sensor's IRQ (Open Drain Output) pin triggers a falling edge if
+      interrupts are configured.
+
 additionalProperties: false
 
 required:
