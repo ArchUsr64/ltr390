@@ -1,0 +1,20 @@
+/dts-v1/;
+/plugin/;
+/ {
+        compatible = "brcm,bcm2835";
+
+        fragment@0 {
+                target = <&i2c1>;
+                __overlay__ {
+                        #address-cells = <1>;
+                        #size-cells = <0>;
+
+                        light-sensor@53 {
+                                compatible = "liteon,ltr390";
+                                reg = <0x53>;
+                        };
+                };
+        };
+};
+// Reference: https://www.youtube.com/watch?v=GQ1XwFWA2Nw
+
