@@ -27,21 +27,35 @@ static int ltr390_probe(struct i2c_client *client)
 	u8 part_id;
 	i2c_master_send(client, get_part_id, sizeof(get_part_id));
 	i2c_master_recv(client, &part_id, sizeof(part_id));
-	printk("Part ID: 0x%x", part_id);
+	printk("Part ID: 0x%x\n", part_id);
 
-	char software_reset[2] = { LTR390_MAIN_CTRL,
-				   BIT(LTR390_SW_RESET) |
-					   BIT(LTR390_SENSOR_ENABLE) };
+	char software_reset[2] = { LTR390_MAIN_CTRL, BIT(LTR390_SW_RESET) };
 	i2c_master_send(client, software_reset, sizeof(software_reset));
 
 	/* Wait for the registers to reset before proceeding */
 	mdelay(10);
 
-	printk("Sensor init completed");
+	char enable_reading[2] = { LTR390_MAIN_CTRL,
+				   BIT(LTR390_SENSOR_ENABLE) };
+	i2c_master_send(client, enable_reading, sizeof(enable_reading));
 
-	// for (int i = 0; i < 100; i++) {
-	// 	mdelay(100);
-	// }
+	printk("Sensor init completed\n");
+
+	for (int i = 0; i < 100; i++) {
+		char get_data = LTR390_ALS_DATA;
+		char received[3];
+		i2c_master_send(client, &get_data, sizeof(get_data));
+		i2c_master_recv(client, received, sizeof(received[0]));
+		get_data++;
+		i2c_master_send(client, &get_data, sizeof(get_data));
+		i2c_master_recv(client, received + 1, sizeof(received[0]));
+		get_data++;
+		i2c_master_send(client, &get_data, sizeof(get_data));
+		i2c_master_recv(client, received + 2, sizeof(received[0]));
+		u32 data = received[0] | received[1] << 8 | received[2] << 16;
+		printk("Data received: 0b%d[%x]\n", data, data);
+		mdelay(100);
+	}
 	return 0;
 }
 
