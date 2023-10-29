@@ -7,14 +7,41 @@
  * Datasheet: https://optoelectronics.liteon.com/upload/download/DS86-2015-0004/LTR-390UV_Final_%20DS_V1%201.pdf
  */
 
+#include <linux/delay.h>
 #include <linux/i2c.h>
 #include <linux/module.h>
-#include <linux/printk.h>
 
 #define LTR390_DRV_NAME "ltr390"
 
+/* MAIN_CTRL Register */
+#define LTR390_MAIN_CTRL 0x00
+#define LTR390_SW_RESET 4
+#define LTR390_UVS_MODE 3
+#define LTR390_SENSOR_ENABLE 3
+
+#define LTR390_PART_ID 0x06
+
 static int ltr390_probe(struct i2c_client *client)
 {
+	char get_part_id[1] = { LTR390_PART_ID };
+	u8 part_id;
+	i2c_master_send(client, get_part_id, sizeof(get_part_id));
+	i2c_master_recv(client, &part_id, sizeof(part_id));
+	printk("Part ID: 0x%x", part_id);
+
+	char software_reset[2] = { LTR390_MAIN_CTRL,
+				   BIT(LTR390_SW_RESET) |
+					   BIT(LTR390_SENSOR_ENABLE) };
+	i2c_master_send(client, software_reset, sizeof(software_reset));
+
+	/* Wait for the registers to reset before proceeding */
+	mdelay(10);
+
+	printk("Sensor init completed");
+
+	// for (int i = 0; i < 100; i++) {
+	// 	mdelay(100);
+	// }
 	return 0;
 }
 
